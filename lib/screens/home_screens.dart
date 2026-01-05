@@ -7,6 +7,8 @@ import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/widgets/home_card.dart';
 import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
+import 'package:task_manager_app/screens/newtask.dart';
+import 'package:task_manager_app/screens/newfolder.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -52,7 +54,13 @@ class HomeScreens extends StatelessWidget {
                 highlightColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NewFolderScreen()),
+                  );
+                },
+
                 child: Ink(
                   width: double.infinity,
                   child: DottedBorder(
@@ -80,14 +88,19 @@ class HomeScreens extends StatelessWidget {
                 ),
               ),
             ),
-            ListTask()
+            ListTask(),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF393433),
-        onPressed: () {},
-        child: Icon(Icons.add, color: Colors.white, size: 32),
+        backgroundColor: const Color(0xFF393433),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const NewTaskScreen()),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
     );
   }

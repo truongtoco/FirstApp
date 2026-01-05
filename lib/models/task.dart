@@ -4,18 +4,22 @@ class Task {
   String id;
   String title;
   Folder? folder;
-  List<Task> subTask; // ? hoặc khi khởi tạo đối tượng mình có thể để là []
+  List<Task> subTask;
   bool isCompleted;
   DateTime createdAt;
   DateTime updatedAt;
+  DateTime? remindAt;
 
   Task({
     required this.id,
     required this.title,
     this.folder,
-    this.subTask = const [],
+    List<Task>? subTask,
     this.isCompleted = false,
     required this.createdAt,
     required this.updatedAt,
-  });
+    this.remindAt,
+  }) : subTask = subTask ?? [];
+
+  copyWith({required String title}) {}
 }
