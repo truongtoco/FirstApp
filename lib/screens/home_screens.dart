@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:task_manager_app/providers/task_provider.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
+import 'package:task_manager_app/screens/widgets/add_task.dart';
 import 'package:task_manager_app/screens/widgets/home_card.dart';
 import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
 
@@ -86,7 +87,21 @@ class HomeScreens extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color(0xFF393433),
-        onPressed: () {},
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.white,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(24),
+              ),
+            ),
+            builder: (context){
+                return const AddNewTask();
+            }
+          );
+        },
         child: Icon(Icons.add, color: Colors.white, size: 32),
       ),
     );
