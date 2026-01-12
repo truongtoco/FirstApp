@@ -1,13 +1,10 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:task_manager_app/providers/task_provider.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/widgets/add_task.dart';
-import 'package:task_manager_app/screens/widgets/home_card.dart';
-import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
+import 'package:task_manager_app/screens/widgets/new_folder_screen.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -18,9 +15,9 @@ class HomeScreens extends StatelessWidget {
       appBar: AppBar(
         title: RichText(
           text: TextSpan(
-            style: TextStyle(color: Colors.black, fontSize: 36),
+            style: const TextStyle(color: Colors.black, fontSize: 36),
             children: [
-              TextSpan(
+              const TextSpan(
                 text: "Today ",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -29,7 +26,7 @@ class HomeScreens extends StatelessWidget {
                   opacity: 0.3,
                   child: Text(
                     DateFormat('d MMM').format(DateTime.now()),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       color: Colors.black,
                       fontSize: 36,
@@ -45,7 +42,8 @@ class HomeScreens extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            ListFolder(),
+            const ListFolder(),
+            // Nút Add New Folder
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22.0),
               child: InkWell(
@@ -53,26 +51,35 @@ class HomeScreens extends StatelessWidget {
                 highlightColor: Colors.transparent,
                 hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NewFolderScreen(),
+                    ),
+                  );
+                },
+
                 child: Ink(
                   width: double.infinity,
                   child: DottedBorder(
-                    options: RoundedRectDottedBorderOptions(
+                    options: const RoundedRectDottedBorderOptions(
                       radius: Radius.circular(12),
                       strokeWidth: 1.5,
                       color: Colors.grey,
                       dashPattern: [8, 5],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
+                    child: const Padding(
+                      padding: EdgeInsets.all(12.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Icon(Icons.add),
+                          SizedBox(width: 8),
                           Text(
                             "Add new folder",
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -81,12 +88,14 @@ class HomeScreens extends StatelessWidget {
                 ),
               ),
             ),
-            ListTask()
+
+            // Danh sách Task
+            const ListTask()
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF393433),
+        backgroundColor: const Color(0xFF393433),
         onPressed: () {
           showModalBottomSheet(
               context: context,
@@ -95,14 +104,13 @@ class HomeScreens extends StatelessWidget {
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(24),
+                ),
               ),
-            ),
-            builder: (context){
+              builder: (context) {
                 return const AddNewTask();
-            }
-          );
+              });
         },
-        child: Icon(Icons.add, color: Colors.white, size: 32),
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
     );
   }

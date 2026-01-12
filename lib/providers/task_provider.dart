@@ -1,99 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/models/task.dart';
-import 'package:uuid/uuid.dart';
+import 'package:task_manager_app/services/folder_service.dart';
+import 'package:task_manager_app/services/task_service.dart';
 
-class TaskProvider extends ChangeNotifier {
-  final Box<Task> _tasksBox = Hive.box<Task>('tasks');
-  final Box<Folder> _foldersBox = Hive.box<Folder>('folders');
+class TaskViewModel extends ChangeNotifier {
+  // Gọi 2 Service Singleton
+  final FolderService _folderService = FolderService();
+  final TaskService _taskService = TaskService();
 
-  List<Task> get tasks => _tasksBox.values.toList().cast<Task>().reversed.toList();
+  List<Task> _tasks = [];
+  List<Folder> _folders = [];
 
-  List<Folder> get folders => _foldersBox.values.toList().cast<Folder>();
+  List<Task> get tasks => _tasks;
+  List<Folder> get folders => _folders;
 
   bool isLoading = false;
 
-  TaskProvider() {
-    init();
+  TaskViewModel() {
+    loadData();
   }
 
-  Future<void> init() async {
-    if (_foldersBox.isEmpty) {
-      isLoading = true;
-      notifyListeners();
+  void loadData() {
+    isLoading = true;
+    notifyListeners();
 
-      await Future.delayed(const Duration(seconds: 1));
-      final uuid = const Uuid();
+    _folders = _folderService.getAllFolders();
+    _tasks = _taskService.getAllTasks();
 
-      final defaultFolders = [
-        Folder(
-          id: uuid.v4(),
-          title: "Health",
-          iconCode: Icons.favorite.codePoint,
-          colorValue: const Color(0xff7990F8).value,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Folder(
-          id: uuid.v4(),
-          title: "Work",
-          iconCode: Icons.work.codePoint,
-          colorValue: const Color(0xff46CF8B).value,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Folder(
-          id: uuid.v4(),
-          title: "Mental Health",
-          iconCode: Icons.spa.codePoint,
-          colorValue: const Color(0xffBC5EAD).value,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Folder(
-          id: uuid.v4(),
-          title: "Others",
-          iconCode: Icons.folder.codePoint,
-          colorValue: const Color(0xff908986).value,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
-
-      for (var folder in defaultFolders) {
-        await _foldersBox.put(folder.id, folder);
-      }
-
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  void addTask(Task newTask) {
-    _tasksBox.put(newTask.id, newTask);
+    isLoading = false;
     notifyListeners();
   }
 
-  void toggleTaskStatus(String taskId) {
-    final task = _tasksBox.get(taskId);
+  void addTask(Task newTask) async {
+    await _taskService.addTask(newTask);
+    // Reload lại list sau khi thêm để UI cập nhật task mới nhất
+    _tasks = _taskService.getAllTasks();
+    notifyListeners();
+  }
 
-    if (task != null) {
+  void toggleTaskStatus(String taskId) async {
+    // Tìm task trong list hiện tại để xử lý
+    final index = _tasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      final task = _tasks[index];
       task.isCompleted = !task.isCompleted;
-      task.save();
+      // Gọi service lưu xuống Database
+      await _taskService.updateTask(task);
       notifyListeners();
-    }
-    else {
-      for (var t in _tasksBox.values) {
-        if (t.subTask.isNotEmpty) {
-
-        }
-      }
     }
   }
 
+  // Lấy Folder Object từ ID
   Folder? getFolderById(String? id) {
     if (id == null) return null;
-    return _foldersBox.get(id);
+    return _folderService.getFolderById(id);
+  }
+  Future<void> updateTask(Task task) async {
+    // 1. Gọi Service để lưu thay đổi xuống Hive Database
+    await _taskService.updateTask(task);
+
+    // 2. Cập nhật lại danh sách hiển thị trên UI
+    _tasks = _taskService.getAllTasks();
+    notifyListeners();
+  }
+  void addFolder(Folder newFolder) async {
+    await _folderService.addFolder(newFolder);
+    _folders = _folderService.getAllFolders();
+    notifyListeners();
   }
 }
