@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:task_manager_app/providers/task_provider.dart';
-import 'package:task_manager_app/screens/home_screens.dart';
+import 'package:task_manager_app/providers/new_folder_provider.dart';
 import 'package:task_manager_app/providers/new_task_provider.dart';
 
-void main() {
+import 'package:task_manager_app/providers/task_provider.dart';
+import 'package:task_manager_app/services/database_service.dart';
+import 'package:task_manager_app/services/folder_service.dart';
+import 'package:task_manager_app/services/task_service.dart';
+import 'package:task_manager_app/screens/home_screens.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Init Hive + register adapters
+  await DatabaseService().initialize();
+
+  // Open Hive boxes
+  await FolderService().init();
+  await TaskService().init();
+
   runApp(const Main());
 }
 
@@ -14,22 +28,25 @@ class Main extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => TaskProvider()),
+      providers: [
+        /// GLOBAL PROVIDER
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => NewFolderProvider()),
         ChangeNotifierProvider(create: (_) => NewTaskProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: ThemeData.light().copyWith(
           scaffoldBackgroundColor: Colors.white,
-          appBarTheme: AppBarTheme(
+          appBarTheme: const AppBarTheme(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             centerTitle: true,
-          )
+          ),
         ),
-        debugShowCheckedModeBanner: false,
-        home: HomeScreens(),
+        home: const HomeScreens(),
       ),
     );
   }

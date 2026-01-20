@@ -1,55 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager_app/models/task.dart';
+import 'package:task_manager_app/providers/task_provider.dart';
 
 class TaskDetailProvider extends ChangeNotifier {
-  final Task originalTask;
+  final TaskProvider taskProvider;
+  final String taskId;
 
   late TextEditingController titleController;
-  late List<Task> subTasks;
-  bool isCompleted;
 
-  TaskDetailProvider(this.originalTask)
-    : isCompleted = originalTask.isCompleted {
-    titleController = TextEditingController(text: originalTask.title);
-    subTasks = originalTask.subTask
-        .map(
-          (e) => Task(
-            id: e.id,
-            title: e.title,
-            isCompleted: e.isCompleted,
-            createdAt: e.createdAt,
-            updatedAt: e.updatedAt,
-          ),
-        )
-        .toList();
+  TaskDetailProvider({
+    required this.taskProvider,
+    required this.taskId,
+  }) {
+    final task = taskProvider.getTaskById(taskId)!;
+    titleController = TextEditingController(text: task.title);
   }
 
-  void toggleTask() {
-    isCompleted = !isCompleted;
-    for (final s in subTasks) {
-      s.isCompleted = isCompleted;
-    }
+  Task get task => taskProvider.getTaskById(taskId)!;
+
+  List<Task> get subTasks => task.subTask;
+
+  bool get isCompleted => task.isCompleted;
+
+  Future<void> toggleTask() async {
+    await taskProvider.toggleTask(taskId);
     notifyListeners();
   }
 
-  void toggleSubTask(String id) {
-    final sub = subTasks.firstWhere((e) => e.id == id);
-    sub.isCompleted = !sub.isCompleted;
-    isCompleted = subTasks.every((e) => e.isCompleted);
+  Future<void> toggleSubTask(String subId) async {
+    await taskProvider.toggleSubTask(taskId, subId);
     notifyListeners();
   }
 
-  Task buildUpdatedTask() {
-    return Task(
-      id: originalTask.id,
+  Future<void> saveTitle() async {
+    final updated = task.copyWith(
       title: titleController.text.trim(),
-      folder: originalTask.folder,
-      subTask: subTasks,
-      isCompleted: isCompleted,
-      createdAt: originalTask.createdAt,
       updatedAt: DateTime.now(),
-      remindAt: originalTask.remindAt,
     );
+
+    await taskProvider.updateTask(updated);
+    notifyListeners();
   }
 
   @override

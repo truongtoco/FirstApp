@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/providers/task_provider.dart';
+import 'package:task_manager_app/screens/task_detail_screen.dart';
 import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
 import 'package:intl/intl.dart';
 
@@ -36,72 +37,89 @@ class FolderTaskScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final task = tasks[index];
 
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  NormalCheckbox(
-                    value: task.isCompleted,
-                    onChanged: () => provider.toggleTask(task.id),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          task.title,
-                          style: TextStyle(
-                            fontSize: 16,
-                            decoration: task.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-                        Row(
+              return InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TaskDetailScreen(taskId: task.id),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      NormalCheckbox(
+                        value: task.isCompleted,
+                        onChanged: () async {
+                          await provider.toggleTask(task.id);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: folder.backgroundColor!.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                folder.title.toUpperCase(),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: folder.backgroundColor,
-                                ),
+                            Text(
+                              task.title,
+                              style: TextStyle(
+                                fontSize: 16,
+                                decoration: task.isCompleted
+                                    ? TextDecoration.lineThrough
+                                    : null,
                               ),
                             ),
-
-                            if (task.remindAt != null) ...[
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.access_time,
-                                size: 14,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                DateFormat('hh:mm a').format(task.remindAt!),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                if (folder.backgroundColor != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: folder.backgroundColor!.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      folder.title.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: folder.backgroundColor!,
+                                      ),
+                                    ),
+                                  ),
+                                if (task.remindAt != null) ...[
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.access_time,
+                                    size: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    DateFormat('h:mm a').format(task.remindAt!),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               );
             },
           );

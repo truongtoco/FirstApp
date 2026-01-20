@@ -10,6 +10,7 @@ class NewTaskScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final newTask = context.watch<NewTaskProvider>();
+    final taskProvider = context.watch<TaskProvider>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -85,7 +86,6 @@ class NewTaskScreen extends StatelessWidget {
               'Folder',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-
             const SizedBox(height: 10),
 
             Consumer<TaskProvider>(
@@ -130,7 +130,6 @@ class NewTaskScreen extends StatelessWidget {
                     firstDate: DateTime(2020),
                     lastDate: DateTime(2100),
                   );
-
                   if (date == null) return;
 
                   final time = await showTimePicker(
@@ -139,7 +138,6 @@ class NewTaskScreen extends StatelessWidget {
                       newTask.selectedDateTime ?? DateTime.now(),
                     ),
                   );
-
                   if (time == null) return;
 
                   newTask.selectDateTime(
@@ -160,34 +158,49 @@ class NewTaskScreen extends StatelessWidget {
                 child: SizedBox(
                   height: 44,
                   child: ElevatedButton(
+                    onPressed: taskProvider.isLoading
+                        ? null
+                        : () async {
+                            final task = newTask.buildTask();
+                            if (task == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Please enter title & folder'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            await context.read<TaskProvider>().addTask(task);
+
+                            newTask.clear();
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    onPressed: () {
-                      final task = newTask.buildTask();
-                      if (task == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please enter title & folder'),
+                    child: taskProvider.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Save',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        );
-                        return;
-                      }
-
-                      context.read<TaskProvider>().addTask(task);
-                      newTask.clear();
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
                 ),
               ),

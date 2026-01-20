@@ -1,196 +1,129 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager_app/models/task.dart';
 import 'package:task_manager_app/models/folder.dart';
+import 'package:task_manager_app/services/hive_task_service.dart';
+import 'package:task_manager_app/services/hive_folder_service.dart';
 import 'package:uuid/uuid.dart';
 
 class TaskProvider extends ChangeNotifier {
-  final List<Task> _tasks = [];
-  final List<Folder> _folders = [];
+  final HiveTaskService _taskService = HiveTaskService();
+  final HiveFolderService _folderService = HiveFolderService();
 
-  List<Task> get tasks => List.unmodifiable(_tasks);
-  List<Folder> get folders => List.unmodifiable(_folders);
+  List<Task> _tasks = [];
+  List<Folder> _folders = [];
+  bool _isLoading = true;
+
+  List<Task> get tasks => _tasks;
+  List<Folder> get folders => _folders;
+  bool get isLoading => _isLoading;
 
   TaskProvider() {
     init();
   }
 
-  void addFolder(Folder folder) {
-    _folders.add(folder);
+  Future<void> init() async {
+    _isLoading = true;
+    notifyListeners();
+
+    await _folderService.addDefaultsIfEmpty();
+
+    _folders = await _folderService.getAll();
+    _tasks = await _taskService.getAll();
+
+    _isLoading = false;
     notifyListeners();
   }
 
-  Task getTaskById(String id) {
-    return _tasks.firstWhere((t) => t.id == id);
+  Task? getTaskById(String id) {
+    try {
+      return _tasks.firstWhere((e) => e.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 
-  void addTask(Task task) {
-    _tasks.add(task);
+  Future<void> addTask(Task task) async {
+    await _taskService.add(task);
+    _tasks = await _taskService.getAll();
     notifyListeners();
   }
 
-  void updateTask(
-    updatedTask, {
-    required String taskId,
-    required String title,
-    Folder? folder,
-    DateTime? remindAt,
-    required List<Task> subTasks,
-  }) {
-    final index = _tasks.indexWhere((t) => t.id == taskId);
-    if (index == -1) return;
-
-    final old = _tasks[index];
-
-    _tasks[index] = Task(
-      id: old.id,
-      title: title,
-      folder: folder ?? old.folder,
-      subTask: subTasks,
-      isCompleted: old.isCompleted,
-      createdAt: old.createdAt,
-      updatedAt: DateTime.now(),
-      remindAt: remindAt ?? old.remindAt,
-    );
-
+  Future<void> updateTask(Task task) async {
+    await _taskService.update(task);
+    _tasks = await _taskService.getAll();
     notifyListeners();
   }
 
-  void updateTaskTitle({required String taskId, required String title}) {
-    final index = _tasks.indexWhere((t) => t.id == taskId);
-    if (index == -1) return;
-
-    final old = _tasks[index];
-
-    _tasks[index] = Task(
-      id: old.id,
-      title: title,
-      folder: old.folder,
-      subTask: old.subTask,
-      isCompleted: old.isCompleted,
-      createdAt: old.createdAt,
-      updatedAt: DateTime.now(),
-      remindAt: old.remindAt,
-    );
-
+  Future<void> deleteTask(String id) async {
+    await _taskService.delete(id);
+    _tasks = await _taskService.getAll();
     notifyListeners();
   }
 
-  void toggleTask(String id) {
+  Future<void> toggleTask(String id) async {
     final task = getTaskById(id);
-    task.isCompleted = !task.isCompleted;
+    if (task == null) return;
 
+    task.isCompleted = !task.isCompleted;
     for (final sub in task.subTask) {
       sub.isCompleted = task.isCompleted;
+      sub.updatedAt = DateTime.now();
     }
+    task.updatedAt = DateTime.now();
 
+    await _taskService.update(task);
+    _tasks = await _taskService.getAll();
     notifyListeners();
   }
 
-  void toggleSubTask(String taskId, String subTaskId) {
+  Future<void> toggleSubTask(String taskId, String subTaskId) async {
     final task = getTaskById(taskId);
-    final sub = task.subTask.firstWhere((s) => s.id == subTaskId);
+    if (task == null) return;
 
+    final index = task.subTask.indexWhere((s) => s.id == subTaskId);
+    if (index == -1) return;
+
+    final sub = task.subTask[index];
     sub.isCompleted = !sub.isCompleted;
+    sub.updatedAt = DateTime.now();
+
     task.isCompleted = task.subTask.every((s) => s.isCompleted);
+    task.updatedAt = DateTime.now();
+
+    await _taskService.update(task);
+    _tasks = await _taskService.getAll();
     notifyListeners();
   }
 
-  void deleteTask(String id) {
-    _tasks.removeWhere((t) => t.id == id);
+  // ===== Folder =====
+  Future<void> addFolder(Folder folder) async {
+    await _folderService.add(folder);
+    _folders = await _folderService.getAll();
     notifyListeners();
   }
 
-  Future<void> init() async {
-    if (_folders.isNotEmpty || _tasks.isNotEmpty) return;
+  Future<void> deleteFolder(String id) async {
+    await _folderService.delete(id);
+    _folders = await _folderService.getAll();
+    notifyListeners();
+  }
 
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    final uuid = Uuid();
+  Future<void> createFolder({
+    required String title,
+    required IconData icon,
+    required Color color,
+  }) async {
     final now = DateTime.now();
-
-    final health = Folder(
-      id: uuid.v4(),
-      title: "Health",
-      icon: Icons.favorite,
-      backgroundColor: const Color(0xff7990F8),
+    final folder = Folder(
+      id: const Uuid().v4(),
+      title: title,
+      icon: icon,
+      backgroundColor: color,
       createdAt: now,
       updatedAt: now,
     );
-
-    final work = Folder(
-      id: uuid.v4(),
-      title: "Work",
-      icon: Icons.work,
-      backgroundColor: const Color(0xff46CF8B),
-      createdAt: now,
-      updatedAt: now,
-    );
-
-    final mental = Folder(
-      id: uuid.v4(),
-      title: "Mental Health",
-      icon: Icons.spa,
-      backgroundColor: const Color(0xffBC5EAD),
-      createdAt: now,
-      updatedAt: now,
-    );
-
-    final others = Folder(
-      id: uuid.v4(),
-      title: "Others",
-      icon: Icons.folder,
-      backgroundColor: const Color(0xff908986),
-      createdAt: now,
-      updatedAt: now,
-    );
-
-    _folders.addAll([health, work, mental, others]);
-
-    _tasks.addAll([
-      Task(
-        id: uuid.v4(),
-        title: "Drink 8 glasses of water",
-        folder: health,
-        createdAt: now,
-        updatedAt: now,
-      ),
-      Task(
-        id: uuid.v4(),
-        title: "Edit the PDF",
-        folder: work,
-        createdAt: now,
-        updatedAt: now,
-      ),
-      Task(
-        id: uuid.v4(),
-        title: "Write in a gratitude journal",
-        folder: mental,
-        createdAt: now,
-        updatedAt: now,
-      ),
-      Task(
-        id: uuid.v4(),
-        title: "Stretch everyday for 15 mins",
-        folder: health,
-        createdAt: now,
-        updatedAt: now,
-        subTask: [
-          Task(
-            id: uuid.v4(),
-            title: "Morning stretch",
-            createdAt: now,
-            updatedAt: now,
-          ),
-          Task(
-            id: uuid.v4(),
-            title: "Evening stretch",
-            createdAt: now,
-            updatedAt: now,
-          ),
-        ],
-      ),
-    ]);
-
+    await _folderService.add(folder);
+    _folders = await _folderService.getAll();
     notifyListeners();
   }
 }

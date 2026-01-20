@@ -1,14 +1,11 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:task_manager_app/providers/task_provider.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
-import 'package:task_manager_app/screens/widgets/home_card.dart';
-import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
 import 'package:task_manager_app/screens/newtask.dart';
 import 'package:task_manager_app/screens/newfolder.dart';
+
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -55,9 +52,18 @@ class HomeScreens extends StatelessWidget {
                 hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NewFolderScreen()),
+                  showDialog(
+                    context: context,
+
+                    barrierDismissible: true,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const NewFolderScreen(),
+                      );
+                    },
                   );
                 },
 

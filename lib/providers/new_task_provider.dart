@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/models/task.dart';
+import 'package:task_manager_app/models/folder.dart';
 import 'package:uuid/uuid.dart';
 
 class NewTaskProvider extends ChangeNotifier {
-  final TextEditingController titleController = TextEditingController();
+  final titleController = TextEditingController();
   final List<TextEditingController> subtaskControllers = [];
 
   Folder? selectedFolder;
@@ -41,16 +41,16 @@ class NewTaskProvider extends ChangeNotifier {
         .where((c) => c.text.trim().isNotEmpty)
         .map(
           (c) => Task(
-            id: Uuid().v4(),
-            title: c.text.trim(),
-            createdAt: now,
-            updatedAt: now,
-          ),
-        )
+        id: const Uuid().v4(),
+        title: c.text.trim(),
+        createdAt: now,
+        updatedAt: now,
+      ),
+    )
         .toList();
 
     return Task(
-      id: Uuid().v4(),
+      id: const Uuid().v4(),
       title: titleController.text.trim(),
       folder: selectedFolder,
       subTask: subTasks,
