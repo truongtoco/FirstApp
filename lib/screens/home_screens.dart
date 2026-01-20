@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
-import 'package:task_manager_app/screens/widgets/add_task.dart';
-import 'package:task_manager_app/screens/widgets/new_folder_screen.dart';
+import 'package:task_manager_app/screens/newtask.dart';
+import 'package:task_manager_app/screens/newfolder.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -15,9 +15,9 @@ class HomeScreens extends StatelessWidget {
       appBar: AppBar(
         title: RichText(
           text: TextSpan(
-            style: const TextStyle(color: Colors.black, fontSize: 36),
+            style: TextStyle(color: Colors.black, fontSize: 36),
             children: [
-              const TextSpan(
+              TextSpan(
                 text: "Today ",
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
@@ -26,7 +26,7 @@ class HomeScreens extends StatelessWidget {
                   opacity: 0.3,
                   child: Text(
                     DateFormat('d MMM').format(DateTime.now()),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w500,
                       color: Colors.black,
                       fontSize: 36,
@@ -42,8 +42,7 @@ class HomeScreens extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const ListFolder(),
-            // Nút Add New Folder
+            ListFolder(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22.0),
               child: InkWell(
@@ -52,34 +51,40 @@ class HomeScreens extends StatelessWidget {
                 hoverColor: Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NewFolderScreen(),
-                    ),
+                  showDialog(
+                    context: context,
+
+                    barrierDismissible: true,
+                    builder: (BuildContext context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const NewFolderScreen(),
+                      );
+                    },
                   );
                 },
 
                 child: Ink(
                   width: double.infinity,
                   child: DottedBorder(
-                    options: const RoundedRectDottedBorderOptions(
+                    options: RoundedRectDottedBorderOptions(
                       radius: Radius.circular(12),
                       strokeWidth: 1.5,
                       color: Colors.grey,
                       dashPattern: [8, 5],
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(12.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Icon(Icons.add),
-                          SizedBox(width: 8),
                           Text(
                             "Add new folder",
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
@@ -88,27 +93,17 @@ class HomeScreens extends StatelessWidget {
                 ),
               ),
             ),
-
-            // Danh sách Task
-            const ListTask()
+            ListTask(),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF393433),
         onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.white,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-              ),
-              builder: (context) {
-                return const AddNewTask();
-              });
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const NewTaskScreen()),
+          );
         },
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),

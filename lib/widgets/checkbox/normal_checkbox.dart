@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NormalCheckbox extends StatelessWidget {
   final bool value;
-  final VoidCallback onChanged;
+  final Future<void> Function()? onChanged;
 
   const NormalCheckbox({
     super.key,
@@ -13,7 +13,9 @@ class NormalCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onChanged,
+      onTap: () async {
+        if (onChanged != null) await onChanged!();
+      },
       child: Icon(
         value ? Icons.check_box : Icons.check_box_outline_blank,
         color: value ? Colors.blue : Colors.grey.shade400,

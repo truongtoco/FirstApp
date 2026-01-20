@@ -1,57 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager_app/models/task.dart';
+import 'package:task_manager_app/providers/task_provider.dart';
 
 class TaskDetailProvider extends ChangeNotifier {
-  final Task originalTask;
+  final TaskProvider taskProvider;
+  final String taskId;
 
   late TextEditingController titleController;
-  late List<Task> subTasks;
-  bool isCompleted;
 
-  TaskDetailProvider(this.originalTask)
-      : isCompleted = originalTask.isCompleted {
-
-    titleController = TextEditingController(text: originalTask.title);
-
-    // Tạo bản sao của Subtask để không ảnh hưởng dữ liệu gốc khi chưa Save
-    subTasks = originalTask.subTask.map((e) => Task(
-      id: e.id,
-      title: e.title,
-      isCompleted: e.isCompleted,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-    )).toList();
+  TaskDetailProvider({required this.taskProvider, required this.taskId}) {
+    final task = taskProvider.getTaskById(taskId)!;
+    titleController = TextEditingController(text: task.title);
   }
 
-  void toggleTask() {
-    isCompleted = !isCompleted;
-    for (final s in subTasks) {
-      s.isCompleted = isCompleted;
-    }
+  Task get task => taskProvider.getTaskById(taskId)!;
+
+  List<Task> get subTasks => task.subTasks;
+
+  bool get isCompleted => task.isCompleted;
+
+  Future<void> toggleTask() async {
+    await taskProvider.toggleTask(taskId);
     notifyListeners();
   }
 
-  // Toggle task phụ -> Kiểm tra lại trạng thái task
-  void toggleSubTask(String id) {
-    final sub = subTasks.firstWhere((e) => e.id == id);
-    sub.isCompleted = !sub.isCompleted;
-
-    // Nếu tất cả task phụ xong -> task xong. Nếu 1 task phụ chưa xong -> task chưa xong
-    isCompleted = subTasks.isNotEmpty && subTasks.every((e) => e.isCompleted);
+  Future<void> toggleSubTask(String subId) async {
+    await taskProvider.toggleSubTask(taskId, subId);
     notifyListeners();
   }
 
-  Task buildUpdatedTask() {
-    return Task(
-      id: originalTask.id,
+  Future<void> saveTitle() async {
+    final updated = task.copyWith(
       title: titleController.text.trim(),
-      folder: originalTask.folder,
-      subTask: subTasks,
-      isCompleted: isCompleted,
-      createdAt: originalTask.createdAt,
       updatedAt: DateTime.now(),
-      scheduledDate: originalTask.scheduledDate, // Sửa remindAt thành scheduledDate
+      subTasks: [],
     );
+
+    await taskProvider.updateTask(updated);
+    notifyListeners();
   }
 
   @override

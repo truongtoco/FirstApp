@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:task_manager_app/providers/new_folder_provider.dart';
+import 'package:task_manager_app/providers/new_task_provider.dart';
+
 import 'package:task_manager_app/providers/task_provider.dart';
 import 'package:task_manager_app/services/database_service.dart';
 import 'package:task_manager_app/services/folder_service.dart';
@@ -9,10 +12,10 @@ import 'package:task_manager_app/screens/home_screens.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Hive + Adapters
+  // Init Hive + register adapters
   await DatabaseService().initialize();
 
-  // Mở các Box dữ liệu
+  // Open Hive boxes
   await FolderService().init();
   await TaskService().init();
 
@@ -26,20 +29,23 @@ class Main extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TaskViewModel())
+        /// GLOBAL PROVIDER
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => NewFolderProvider()),
+        ChangeNotifierProvider(create: (_) => NewTaskProvider()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.light,
         theme: ThemeData.light().copyWith(
-            scaffoldBackgroundColor: Colors.white,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              centerTitle: true,
-            )
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+          ),
         ),
-        debugShowCheckedModeBanner: false,
         home: const HomeScreens(),
       ),
     );

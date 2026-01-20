@@ -6,10 +6,9 @@ import 'package:uuid/uuid.dart';
 class EditTaskProvider extends ChangeNotifier {
   final Task originalTask;
 
-  // Controllers & State
   late TextEditingController titleCtrl;
   Folder? selectedFolder;
-  DateTime? scheduledDate; // Đổi remindAt -> scheduledDate
+  DateTime? scheduledDate;
   List<Task> subTasks = [];
 
   EditTaskProvider(this.originalTask) {
@@ -17,14 +16,20 @@ class EditTaskProvider extends ChangeNotifier {
     selectedFolder = originalTask.folder;
     scheduledDate = originalTask.scheduledDate;
 
-    // Copy Subtasks --> Để khi sửa subtask ở đây không ảnh hưởng task gốc ngay lập tức
-    subTasks = originalTask.subTask.map((e) => Task(
-      id: e.id,
-      title: e.title,
-      isCompleted: e.isCompleted,
-      createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
-    )).toList();
+    subTasks = originalTask.subTasks
+        .map(
+          (e) => Task(
+            id: e.id,
+            title: e.title,
+            folder: null,
+            subTasks: [],
+            isCompleted: e.isCompleted,
+            scheduledDate: e.scheduledDate,
+            createdAt: e.createdAt,
+            updatedAt: e.updatedAt,
+          ),
+        )
+        .toList();
   }
 
   void setFolder(Folder? folder) {
@@ -47,14 +52,15 @@ class EditTaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Thêm subtask
   void addDummySubTask() {
-    subTasks.add(Task(
-      id: const Uuid().v4(),
-      title: "",
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ));
+    subTasks.add(
+      Task(
+        id: const Uuid().v4(),
+        title: "",
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
     notifyListeners();
   }
 
@@ -62,15 +68,14 @@ class EditTaskProvider extends ChangeNotifier {
     sub.title = newTitle;
   }
 
-  // Hàm Build Task mới để chuẩn bị Save
   Task? buildUpdatedTask() {
     if (titleCtrl.text.trim().isEmpty) return null;
 
     return Task(
-      id: originalTask.id, // Giữ nguyên ID cũ
+      id: originalTask.id,
       title: titleCtrl.text.trim(),
       folder: selectedFolder,
-      subTask: subTasks,
+      subTasks: subTasks,
       isCompleted: originalTask.isCompleted,
       createdAt: originalTask.createdAt,
       updatedAt: DateTime.now(),

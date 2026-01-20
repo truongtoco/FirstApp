@@ -1,139 +1,192 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:task_manager_app/providers/task_provider.dart';
+import 'package:task_manager_app/screens/task_detail_screen.dart';
 import 'package:task_manager_app/widgets/checkbox/normal_checkbox.dart';
-import '../../providers/task_provider.dart';
-import '../widgets/edit_task.dart';
 
 class ListTask extends StatelessWidget {
   const ListTask({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<TaskViewModel>(
-      builder: (context, viewModel, child) {
-        return ListView.separated(
-          physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(22),
-          shrinkWrap: true,
-          itemCount: viewModel.tasks.length,
-          itemBuilder: (context, index) {
-            final task = viewModel.tasks[index];
+    return Consumer<TaskProvider>(
+      builder: (context, provider, _) {
+        final tasks = provider.tasks;
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // CHECKBOX
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: NormalCheckbox(
-                      value: task.isCompleted,
-                      onChanged: () {
-                        viewModel.toggleTaskStatus(task.id);
+        if (provider.isLoading) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (tasks.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: Text("No tasks")),
+          );
+        }
+
+        return SlidableAutoCloseBehavior(
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+            itemCount: tasks.length,
+            separatorBuilder: (_, __) =>
+                Divider(height: 24, color: Colors.grey.shade300),
+            itemBuilder: (context, index) {
+              final task = tasks[index];
+
+              return Slidable(
+                key: ValueKey(task.id),
+                endActionPane: ActionPane(
+                  motion: const StretchMotion(),
+                  extentRatio: 0.25,
+                  children: [
+                    SlidableAction(
+                      onPressed: (_) async {
+                        await provider.deleteTask(task.id);
                       },
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      icon: Icons.delete,
                     ),
-                  ),
-
-                  // SỰ KIỆN CLICK VÀO TASK
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        // Chuyển sang màn hình EditTaskScreen và truyền task hiện tại sang
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => EditTaskScreen(task: task),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          NormalCheckbox(
+                            value: task.isCompleted,
+                            onChanged: () async {
+                              await provider.toggleTask(task.id);
+                            },
                           ),
-                        );
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              task.title,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w500,
-                                decoration: task.isCompleted ? TextDecoration.lineThrough : null,
-                                color: task.isCompleted ? Colors.grey : Colors.black,
-                              ),
-                            ),
-
-                            // Hiển thị Folder Tag
-                            if (task.folder != null) ...[
-                              const SizedBox(height: 8),
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: task.folder!.backgroundColor?.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6.0,
-                                    vertical: 2,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        TaskDetailScreen(taskId: task.id),
                                   ),
-                                  child: Text(
-                                    task.folder!.title,
+                                );
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    task.title,
                                     style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: task.folder!.backgroundColor,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      decoration: task.isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : null,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-
-                            // Hiển thị Subtasks
-                            if (task.subTask.isNotEmpty) ...[
-                              const SizedBox(height: 8),
-                              Column(
-                                children: List.generate(task.subTask.length, (subIndex) {
-                                  final subTask = task.subTask[subIndex];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Row(
-                                      children: [
-                                        // Checkbox của subtask
-                                        NormalCheckbox(
-                                          value: subTask.isCompleted,
-                                          onChanged: () {
-                                            viewModel.toggleTaskStatus(subTask.id);
-                                          },
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      if (task.folder != null)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: task.folder!.backgroundColor!
+                                                .withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
                                           child: Text(
-                                            subTask.title,
+                                            task.folder!.title.toUpperCase(),
                                             style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.grey.shade700,
-                                              decoration: subTask.isCompleted
-                                                  ? TextDecoration.lineThrough
-                                                  : null,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  task.folder!.backgroundColor,
                                             ),
                                           ),
                                         ),
+                                      if (task.remindAt != null) ...[
+                                        const SizedBox(width: 8),
+                                        const Icon(
+                                          Icons.access_time,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          DateFormat(
+                                            'h:mm a',
+                                          ).format(task.remindAt!),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
                                       ],
-                                    ),
-                                  );
-                                }),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ],
-                          ],
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+
+                      if (task.subTasks.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Column(
+                          children: task.subTasks.map((sub) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                children: [
+                                  NormalCheckbox(
+                                    value: sub.isCompleted,
+                                    onChanged: () async {
+                                      await provider.toggleSubTask(
+                                        task.id,
+                                        sub.id,
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      sub.title,
+                                      style: TextStyle(
+                                        decoration: sub.isCompleted
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-          separatorBuilder: (context, index) =>
-              Divider(color: Colors.grey.shade300),
+                ),
+              );
+            },
+          ),
         );
       },
     );
