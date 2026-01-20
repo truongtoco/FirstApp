@@ -1,148 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:task_manager_app/models/task.dart';
 import 'package:task_manager_app/models/folder.dart';
-import 'package:task_manager_app/services/task_service.dart';
+import 'package:task_manager_app/models/task.dart';
 import 'package:task_manager_app/services/folder_service.dart';
-import 'package:uuid/uuid.dart';
+import 'package:task_manager_app/services/task_service.dart';
 
-class TaskProvider extends ChangeNotifier {
-  final TaskService _taskService = TaskService();
+class TaskViewModel extends ChangeNotifier {
+  // Gọi 2 Service Singleton
   final FolderService _folderService = FolderService();
+  final TaskService _taskService = TaskService();
 
   List<Task> _tasks = [];
   List<Folder> _folders = [];
-  bool _isLoading = true;
 
   List<Task> get tasks => _tasks;
   List<Folder> get folders => _folders;
-  bool get isLoading => _isLoading;
 
-  TaskProvider() {
+  bool isLoading = false;
+
+  TaskViewModel() {
     loadData();
   }
 
-  Future<void> loadData() async {
-    _isLoading = true;
+  void loadData() {
+    isLoading = true;
     notifyListeners();
 
-    // Service đã được init ở main()
     _folders = _folderService.getAllFolders();
     _tasks = _taskService.getAllTasks();
 
-    _isLoading = false;
+    isLoading = false;
     notifyListeners();
   }
 
-  // ===== TASK =====
-  Task? getTaskById(String id) {
-    try {
-      return _tasks.firstWhere((t) => t.id == id);
-    } catch (_) {
-      return null;
+  void addTask(Task newTask) async {
+    await _taskService.addTask(newTask);
+    // Reload lại list sau khi thêm để UI cập nhật task mới nhất
+    _tasks = _taskService.getAllTasks();
+    notifyListeners();
+  }
+
+  void toggleTaskStatus(String taskId) async {
+    // Tìm task trong list hiện tại để xử lý
+    final index = _tasks.indexWhere((t) => t.id == taskId);
+    if (index != -1) {
+      final task = _tasks[index];
+      task.isCompleted = !task.isCompleted;
+      // Gọi service lưu xuống Database
+      await _taskService.updateTask(task);
+      notifyListeners();
     }
   }
 
-  Future<void> addTask(Task task) async {
-    await _taskService.addTask(task);
-    _tasks = _taskService.getAllTasks();
-    notifyListeners();
+  // Lấy Folder Object từ ID
+  Folder? getFolderById(String? id) {
+    if (id == null) return null;
+    return _folderService.getFolderById(id);
   }
-
   Future<void> updateTask(Task task) async {
-    task.updatedAt = DateTime.now();
-    await task.save();
-    notifyListeners();
-  }
+    // 1. Gọi Service để lưu thay đổi xuống Hive Database
+    await _taskService.updateTask(task);
 
-  Future<void> deleteTask(String id) async {
-    await _taskService.deleteTask(id);
+    // 2. Cập nhật lại danh sách hiển thị trên UI
     _tasks = _taskService.getAllTasks();
     notifyListeners();
   }
-
-  Future<void> toggleTask(String id) async {
-    final task = getTaskById(id);
-    if (task == null) return;
-
-    final newCompleted = !task.isCompleted;
-
-    final newSubTasks = task.subTasks
-        .map(
-          (sub) => sub.copyWith(
-            isCompleted: newCompleted,
-            updatedAt: DateTime.now(),
-          ),
-        )
-        .toList();
-
-    final updatedTask = task.copyWith(
-      isCompleted: newCompleted,
-      subTasks: newSubTasks,
-      updatedAt: DateTime.now(),
-    );
-
-    await _taskService.updateTask(updatedTask);
-    _tasks = _taskService.getAllTasks();
-    notifyListeners();
-  }
-
-  Future<void> toggleSubTask(String taskId, String subTaskId) async {
-    final task = getTaskById(taskId);
-    if (task == null) return;
-
-    final newSubTasks = task.subTasks.map((sub) {
-      if (sub.id == subTaskId) {
-        return sub.copyWith(
-          isCompleted: !sub.isCompleted,
-          updatedAt: DateTime.now(),
-        );
-      }
-      return sub;
-    }).toList();
-
-    final isCompleted = newSubTasks.every((s) => s.isCompleted);
-
-    final updatedTask = task.copyWith(
-      subTasks: newSubTasks,
-      isCompleted: isCompleted,
-      updatedAt: DateTime.now(),
-    );
-
-    await _taskService.updateTask(updatedTask);
-    _tasks = _taskService.getAllTasks();
-    notifyListeners();
-  }
-
-  // ===== FOLDER =====
-  Future<void> addFolder(Folder folder) async {
-    await _folderService.addFolder(folder);
-    _folders = _folderService.getAllFolders();
-    notifyListeners();
-  }
-
-  Future<void> deleteFolder(String id) async {
-    // Bạn chưa có deleteFolder trong service
-    // 👉 nếu cần mình sẽ viết thêm cho bạn
-    notifyListeners();
-  }
-
-  Future<void> createFolder({
-    required String title,
-    required IconData icon,
-    required Color color,
-  }) async {
-    final now = DateTime.now();
-
-    final folder = Folder(
-      id: const Uuid().v4(),
-      title: title,
-      iconCode: icon.codePoint,
-      colorValue: color.value,
-      createdAt: now,
-      updatedAt: now,
-    );
-
-    await _folderService.addFolder(folder);
+  void addFolder(Folder newFolder) async {
+    await _folderService.addFolder(newFolder);
     _folders = _folderService.getAllFolders();
     notifyListeners();
   }

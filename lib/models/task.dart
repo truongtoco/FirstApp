@@ -14,7 +14,7 @@ class Task extends HiveObject {
   Folder? folder;
 
   @HiveField(3)
-  List<Task> subTasks;
+  List<Task> subTask;
 
   @HiveField(4)
   bool isCompleted;
@@ -28,40 +28,14 @@ class Task extends HiveObject {
   @HiveField(7)
   DateTime? scheduledDate;
 
-  @HiveField(8)
-  DateTime? remindAt;
-
   Task({
     required this.id,
     required this.title,
     this.folder,
-    List<Task>? subTasks,
+    this.subTask = const [],
     this.isCompleted = false,
     required this.createdAt,
     required this.updatedAt,
     this.scheduledDate,
-    this.remindAt,
-  }) : subTasks = subTasks ?? [];
-
-  Task copyWith({
-    String? title,
-    bool? isCompleted,
-    List<Task>? subTasks,
-    Folder? folder,
-    DateTime? scheduledDate,
-    DateTime? remindAt,
-    DateTime? updatedAt,
-  }) {
-    return Task(
-      id: id,
-      title: title ?? this.title,
-      folder: folder ?? this.folder,
-      subTasks: subTasks ?? this.subTasks,
-      isCompleted: isCompleted ?? this.isCompleted,
-      createdAt: createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
-      scheduledDate: scheduledDate ?? this.scheduledDate,
-      remindAt: remindAt ?? this.remindAt,
-    );
-  }
+  });
 }
