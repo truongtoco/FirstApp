@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:task_manager_app/models/task.dart';
-import 'package:task_manager_app/models/folder.dart';
+
 import 'package:task_manager_app/providers/task_provider.dart';
 
 class EditTaskScreen extends StatefulWidget {
@@ -70,19 +70,16 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     final title = titleCtrl.text.trim();
     if (title.isEmpty) return;
 
-    final Folder? selectedFolder = selectedFolderId == null
-        ? null
-        : provider.folders.firstWhere((f) => f.id == selectedFolderId);
+    _originTask
+      ..title = title
+      ..folder = selectedFolderId == null
+          ? null
+          : provider.folders.firstWhere((f) => f.id == selectedFolderId)
+      ..remindAt = remindAt
+      ..subTasks = subTasks
+      ..updatedAt = DateTime.now();
 
-    final updatedTask = _originTask.copyWith(
-      title: title,
-      folder: selectedFolder,
-      remindAt: remindAt,
-      subTask: subTasks,
-      updatedAt: DateTime.now(),
-    );
-
-    provider.updateTask(updatedTask);
+    provider.updateTask(_originTask);
     Navigator.pop(context);
   }
 
@@ -103,7 +100,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
           titleCtrl.text = task.title;
           selectedFolderId = task.folder?.id;
           remindAt = task.remindAt;
-          subTasks = task.subTask.map((e) => e.copyWith()).toList();
+          subTasks = task.subTasks.map((e) => e.copyWith()).toList();
           _initialized = true;
         }
 

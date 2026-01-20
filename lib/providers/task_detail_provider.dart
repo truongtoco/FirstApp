@@ -8,17 +8,14 @@ class TaskDetailProvider extends ChangeNotifier {
 
   late TextEditingController titleController;
 
-  TaskDetailProvider({
-    required this.taskProvider,
-    required this.taskId,
-  }) {
+  TaskDetailProvider({required this.taskProvider, required this.taskId}) {
     final task = taskProvider.getTaskById(taskId)!;
     titleController = TextEditingController(text: task.title);
   }
 
   Task get task => taskProvider.getTaskById(taskId)!;
 
-  List<Task> get subTasks => task.subTask;
+  List<Task> get subTasks => task.subTasks;
 
   bool get isCompleted => task.isCompleted;
 
@@ -36,6 +33,7 @@ class TaskDetailProvider extends ChangeNotifier {
     final updated = task.copyWith(
       title: titleController.text.trim(),
       updatedAt: DateTime.now(),
+      subTasks: [],
     );
 
     await taskProvider.updateTask(updated);

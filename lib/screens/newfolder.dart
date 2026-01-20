@@ -1,62 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:task_manager_app/providers/new_folder_provider.dart';
 import 'package:task_manager_app/providers/task_provider.dart';
 
-class NewFolderScreen extends StatefulWidget {
+class NewFolderScreen extends StatelessWidget {
   const NewFolderScreen({super.key});
 
   @override
-  State<NewFolderScreen> createState() => _NewFolderScreenState();
-}
-
-class _NewFolderScreenState extends State<NewFolderScreen> {
-  final _titleController = TextEditingController();
-
-  IconData _selectedIcon = Icons.folder;
-  Color _selectedColor = const Color(0xff7990F8);
-
-  final _icons = [
-    Icons.folder,
-    Icons.work,
-    Icons.favorite,
-    Icons.spa,
-    Icons.school,
-    Icons.home,
-  ];
-
-  final _colors = [
-    Color(0xff7990F8),
-    Color(0xff46CF8B),
-    Color(0xffBC5EAD),
-    Color(0xffF8A44C),
-    Color(0xff908986),
-    Color(0xffF27979),
-  ];
-
-  Future<void> _saveFolder() async {
-    final title = _titleController.text.trim();
-    if (title.isEmpty) return;
-
-    await context.read<TaskProvider>().createFolder(
-      title: title,
-      icon: _selectedIcon,
-      color: _selectedColor,
-    );
-
-    if (mounted) {
-      Navigator.pop(context);
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final folderForm = context.watch<NewFolderProvider>();
+    final taskProvider = context.read<TaskProvider>();
+
     return Material(
       color: Colors.transparent,
       child: SingleChildScrollView(
@@ -69,18 +23,12 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              /// HEADER
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -89,16 +37,15 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 10),
-
+              /// TITLE
               TextField(
-                controller: _titleController,
+                controller: folderForm.titleController,
                 autofocus: true,
                 decoration: const InputDecoration(
                   hintText: 'Folder name',
@@ -111,8 +58,9 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
               ),
 
               const Divider(),
-              const SizedBox(height: 15),
+              const SizedBox(height: 16),
 
+              /// ICONS
               const Text(
                 'Icon',
                 style: TextStyle(
@@ -121,18 +69,18 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+
               Wrap(
                 spacing: 12,
-                runSpacing: 12,
-                children: _icons.map((icon) {
-                  final isSelected = icon == _selectedIcon;
+                children: folderForm.icons.map((icon) {
+                  final isSelected = icon == folderForm.selectedIcon;
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedIcon = icon),
+                    onTap: () => folderForm.selectIcon(icon),
                     child: CircleAvatar(
                       radius: 20,
                       backgroundColor: isSelected
-                          ? _selectedColor
-                          : Colors.grey.shade100,
+                          ? folderForm.selectedColor
+                          : Colors.grey.shade200,
                       child: Icon(
                         icon,
                         color: isSelected ? Colors.white : Colors.grey,
@@ -144,6 +92,7 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
 
               const SizedBox(height: 20),
 
+              /// COLORS
               const Text(
                 'Color',
                 style: TextStyle(
@@ -152,12 +101,13 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+
               Wrap(
                 spacing: 12,
-                children: _colors.map((color) {
-                  final isSelected = color == _selectedColor;
+                children: folderForm.colors.map((color) {
+                  final isSelected = color == folderForm.selectedColor;
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedColor = color),
+                    onTap: () => folderForm.selectColor(color),
                     child: Container(
                       width: 32,
                       height: 32,
@@ -175,10 +125,22 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
 
               const SizedBox(height: 30),
 
+              /// SAVE
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveFolder,
+                  onPressed: () async {
+                    final title = folderForm.titleController.text.trim();
+                    if (title.isEmpty) return;
+
+                    await taskProvider.createFolder(
+                      title: title,
+                      icon: folderForm.selectedIcon,
+                      color: folderForm.selectedColor,
+                    );
+
+                    if (context.mounted) Navigator.pop(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
@@ -186,7 +148,6 @@ class _NewFolderScreenState extends State<NewFolderScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 0,
                   ),
                   child: const Text(
                     'Create Folder',

@@ -6,7 +6,6 @@ import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/newtask.dart';
 import 'package:task_manager_app/screens/newfolder.dart';
 
-
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
 

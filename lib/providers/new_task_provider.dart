@@ -41,19 +41,19 @@ class NewTaskProvider extends ChangeNotifier {
         .where((c) => c.text.trim().isNotEmpty)
         .map(
           (c) => Task(
-        id: const Uuid().v4(),
-        title: c.text.trim(),
-        createdAt: now,
-        updatedAt: now,
-      ),
-    )
+            id: const Uuid().v4(),
+            title: c.text.trim(),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        )
         .toList();
 
     return Task(
       id: const Uuid().v4(),
       title: titleController.text.trim(),
       folder: selectedFolder,
-      subTask: subTasks,
+      subTasks: subTasks,
       createdAt: now,
       updatedAt: now,
       remindAt: selectedDateTime,

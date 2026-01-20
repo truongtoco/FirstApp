@@ -15,9 +15,7 @@ class TaskDetailScreen extends StatelessWidget {
       builder: (context, provider, _) {
         final task = provider.getTaskById(taskId);
         if (task == null) {
-          return const Scaffold(
-            body: Center(child: Text('Task not found')),
-          );
+          return const Scaffold(body: Center(child: Text('Task not found')));
         }
 
         return Scaffold(
@@ -53,7 +51,9 @@ class TaskDetailScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
-                        decoration: task.isCompleted ? TextDecoration.lineThrough : null,
+                        decoration: task.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                   ),
@@ -62,7 +62,10 @@ class TaskDetailScreen extends StatelessWidget {
               const SizedBox(height: 16),
               if (task.folder != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: task.folder!.backgroundColor!.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
@@ -74,28 +77,42 @@ class TaskDetailScreen extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 4),
-                      Text(DateFormat('dd MMM yyyy • h:mm a').format(task.remindAt!)),
+                      Text(
+                        DateFormat(
+                          'dd MMM yyyy • h:mm a',
+                        ).format(task.remindAt!),
+                      ),
                     ],
                   ),
                 ),
               const SizedBox(height: 16),
-              const Text('Subtasks', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Text(
+                'Subtasks',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
-              ...task.subTask.map((sub) {
+              ...task.subTasks.map((sub) {
                 return Row(
                   children: [
                     NormalCheckbox(
                       value: sub.isCompleted,
-                      onChanged: () async => await provider.toggleSubTask(task.id, sub.id),
+                      onChanged: () async =>
+                          await provider.toggleSubTask(task.id, sub.id),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         sub.title,
                         style: TextStyle(
-                          decoration: sub.isCompleted ? TextDecoration.lineThrough : null,
+                          decoration: sub.isCompleted
+                              ? TextDecoration.lineThrough
+                              : null,
                         ),
                       ),
                     ),

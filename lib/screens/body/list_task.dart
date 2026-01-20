@@ -147,10 +147,10 @@ class ListTask extends StatelessWidget {
                         ],
                       ),
 
-                      if (task.subTask.isNotEmpty) ...[
+                      if (task.subTasks.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Column(
-                          children: task.subTask.map((sub) {
+                          children: task.subTasks.map((sub) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(

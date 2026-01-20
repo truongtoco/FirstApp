@@ -11,14 +11,21 @@ class NewFolderProvider extends ChangeNotifier {
   Color selectedColor = const Color(0xff7990F8);
 
   final List<IconData> icons = [
-    Icons.folder, Icons.work, Icons.favorite,
-    Icons.spa, Icons.school, Icons.home,
+    Icons.folder,
+    Icons.work,
+    Icons.favorite,
+    Icons.spa,
+    Icons.school,
+    Icons.home,
   ];
 
   final List<Color> colors = [
-    const Color(0xff7990F8), const Color(0xff46CF8B),
-    const Color(0xffBC5EAD), const Color(0xffF8A44C),
-    const Color(0xff908986), const Color(0xffF27979),
+    const Color(0xff7990F8),
+    const Color(0xff46CF8B),
+    const Color(0xffBC5EAD),
+    const Color(0xffF8A44C),
+    const Color(0xff908986),
+    const Color(0xffF27979),
   ];
 
   void selectIcon(IconData icon) {
@@ -36,7 +43,6 @@ class NewFolderProvider extends ChangeNotifier {
 
     final now = DateTime.now();
 
-    // Tạo object Folder (Convert Icon/Color sang int để lưu Hive)
     final newFolder = Folder(
       id: const Uuid().v4(),
       title: titleController.text.trim(),
@@ -46,8 +52,7 @@ class NewFolderProvider extends ChangeNotifier {
       updatedAt: now,
     );
 
-    // Lưu vào Database
-    context.read<TaskViewModel>().addFolder(newFolder);
+    context.read<TaskProvider>().addFolder(newFolder);
 
     Navigator.pop(context);
   }
