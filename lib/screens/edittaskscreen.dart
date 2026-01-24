@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:task_manager_app/models/task.dart';
-
+import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/providers/task_provider.dart';
 
 class EditTaskScreen extends StatefulWidget {

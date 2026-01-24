@@ -76,7 +76,16 @@ class FolderService {
       await _folderBox.put(folder.id, folder);
     }
   }
+
   Future<void> addFolder(Folder folder) async {
     await _folderBox.put(folder.id, folder);
+  }
+
+  Future<void> deleteFolder(String id) async {
+    if (!_folderBox.isOpen) {
+      _folderBox = await Hive.openBox<Folder>('folders');
+    }
+
+    await _folderBox.delete(id);
   }
 }

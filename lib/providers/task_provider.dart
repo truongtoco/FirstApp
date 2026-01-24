@@ -4,6 +4,7 @@ import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/services/task_service.dart';
 import 'package:task_manager_app/services/folder_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:task_manager_app/services/notification_service.dart';
 
 class TaskProvider extends ChangeNotifier {
   final TaskService _taskService = TaskService();
@@ -25,7 +26,6 @@ class TaskProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // Service đã được init ở main()
     _folders = _folderService.getAllFolders();
     _tasks = _taskService.getAllTasks();
 
@@ -33,7 +33,6 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ===== TASK =====
   Task? getTaskById(String id) {
     try {
       return _tasks.firstWhere((t) => t.id == id);
@@ -44,51 +43,77 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> addTask(Task task) async {
     await _taskService.addTask(task);
+    if (task.remindAt != null) {
+      try {
+        await NotificationService().setAlarm(
+          id: task.id.hashCode,
+          title: 'Task reminder',
+          body: task.title,
+          time: task.remindAt!,
+        );
+      } catch (e, s) {
+        debugPrintStack(stackTrace: s);
+      }
+    }
     _tasks = _taskService.getAllTasks();
     notifyListeners();
   }
 
   Future<void> updateTask(Task task) async {
-    task.updatedAt = DateTime.now();
+    await NotificationService().cancel(task.id.hashCode);
     await task.save();
+    if (task.remindAt != null && task.remindAt!.isAfter(DateTime.now())) {
+      await NotificationService().setAlarm(
+        id: task.id.hashCode,
+        title: 'Task reminder',
+        body: task.title,
+        time: task.remindAt!,
+      );
+    }
+
+    _tasks = _taskService.getAllTasks();
     notifyListeners();
   }
 
+  List<Task> tasksForDay(DateTime day) {
+    return _tasks.where((t) {
+      if (t.scheduledDate == null) return false;
+      return DateUtils.isSameDay(t.scheduledDate, day);
+    }).toList();
+  }
+
   Future<void> deleteTask(String id) async {
+    await NotificationService().cancel(id.hashCode);
     await _taskService.deleteTask(id);
     _tasks = _taskService.getAllTasks();
     notifyListeners();
   }
 
   Future<void> toggleTask(String id) async {
-    final task = getTaskById(id);
-    if (task == null) return;
+    final index = _tasks.indexWhere((t) => t.id == id);
+    if (index == -1) return;
 
+    final task = _tasks[index];
     final newCompleted = !task.isCompleted;
 
-    final newSubTasks = task.subTasks
-        .map(
-          (sub) => sub.copyWith(
-            isCompleted: newCompleted,
-            updatedAt: DateTime.now(),
-          ),
-        )
-        .toList();
-
-    final updatedTask = task.copyWith(
+    _tasks[index] = task.copyWith(
       isCompleted: newCompleted,
-      subTasks: newSubTasks,
+      subTasks: task.subTasks
+          .map((s) => s.copyWith(isCompleted: newCompleted))
+          .toList(),
       updatedAt: DateTime.now(),
     );
 
-    await _taskService.updateTask(updatedTask);
-    _tasks = _taskService.getAllTasks();
     notifyListeners();
+
+    await _taskService.updateTask(_tasks[index]);
   }
 
   Future<void> toggleSubTask(String taskId, String subTaskId) async {
-    final task = getTaskById(taskId);
-    if (task == null) return;
+    final index = _tasks.indexWhere((t) => t.id == taskId);
+    if (index == -1) return;
+
+    final task = _tasks[index];
 
     final newSubTasks = task.subTasks.map((sub) {
       if (sub.id == subTaskId) {
@@ -102,18 +127,17 @@ class TaskProvider extends ChangeNotifier {
 
     final isCompleted = newSubTasks.every((s) => s.isCompleted);
 
-    final updatedTask = task.copyWith(
+    _tasks[index] = task.copyWith(
       subTasks: newSubTasks,
       isCompleted: isCompleted,
       updatedAt: DateTime.now(),
     );
 
-    await _taskService.updateTask(updatedTask);
-    _tasks = _taskService.getAllTasks();
     notifyListeners();
+
+    await _taskService.updateTask(_tasks[index]);
   }
 
-  // ===== FOLDER =====
   Future<void> addFolder(Folder folder) async {
     await _folderService.addFolder(folder);
     _folders = _folderService.getAllFolders();
@@ -121,9 +145,21 @@ class TaskProvider extends ChangeNotifier {
   }
 
   Future<void> deleteFolder(String id) async {
-    // Bạn chưa có deleteFolder trong service
-    // 👉 nếu cần mình sẽ viết thêm cho bạn
-    notifyListeners();
+    try {
+      await _folderService.deleteFolder(id);
+      _tasks = _tasks.map((task) {
+        if (task.folder?.id == id) {
+          return task.copyWith(folder: null, updatedAt: DateTime.now());
+        }
+        return task;
+      }).toList();
+
+      _folders = _folderService.getAllFolders();
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Delete folder error: $e');
+    }
   }
 
   Future<void> createFolder({

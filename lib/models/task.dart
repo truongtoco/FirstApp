@@ -31,6 +31,8 @@ class Task extends HiveObject {
   @HiveField(8)
   DateTime? remindAt;
 
+  @HiveField(9)
+  int durationMinutes;
   Task({
     required this.id,
     required this.title,
@@ -41,6 +43,7 @@ class Task extends HiveObject {
     required this.updatedAt,
     this.scheduledDate,
     this.remindAt,
+    this.durationMinutes = 60,
   }) : subTasks = subTasks ?? [];
 
   Task copyWith({
@@ -51,6 +54,7 @@ class Task extends HiveObject {
     DateTime? scheduledDate,
     DateTime? remindAt,
     DateTime? updatedAt,
+    int? durationMinutes,
   }) {
     return Task(
       id: id,
@@ -62,6 +66,7 @@ class Task extends HiveObject {
       updatedAt: updatedAt ?? DateTime.now(),
       scheduledDate: scheduledDate ?? this.scheduledDate,
       remindAt: remindAt ?? this.remindAt,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
     );
   }
 }

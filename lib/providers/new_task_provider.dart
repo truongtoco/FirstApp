@@ -56,7 +56,9 @@ class NewTaskProvider extends ChangeNotifier {
       subTasks: subTasks,
       createdAt: now,
       updatedAt: now,
+      scheduledDate: selectedDateTime,
       remindAt: selectedDateTime,
+      durationMinutes: 60,
     );
   }
 

@@ -39,7 +39,6 @@ class ListFolder extends StatelessWidget {
           itemBuilder: (context, index) {
             final folder = provider.folders[index];
 
-            ///  counter tự update
             return Selector<TaskProvider, int>(
               selector: (_, p) =>
                   p.tasks.where((t) => t.folder?.id == folder.id).length,

@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:task_manager_app/models/task.dart';
+import 'package:uuid/uuid.dart';
 
 class TaskService {
   // --- SINGLETON PATTERN ---
@@ -11,6 +12,10 @@ class TaskService {
 
   Future<void> init() async {
     _taskBox = await Hive.openBox<Task>('tasks');
+
+    if (_taskBox.isEmpty) {
+      await _createDefaultTasks();
+    }
   }
 
   // Lấy toàn bộ danh sách Task
@@ -38,5 +43,28 @@ class TaskService {
   // Xóa toàn bộ Task
   Future<void> deleteAllTasks() async {
     await _taskBox.clear();
+  }
+
+  Future<void> _createDefaultTasks() async {
+    final now = DateTime.now();
+
+    final task = Task(
+      id: const Uuid().v4(),
+      title: "Welcome ",
+      createdAt: now,
+      updatedAt: now,
+      scheduledDate: now.add(const Duration(hours: 1)),
+      durationMinutes: 60,
+      subTasks: [
+        Task(
+          id: const Uuid().v4(),
+          title: "Tap to complete me",
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+    );
+
+    await _taskBox.put(task.id, task);
   }
 }

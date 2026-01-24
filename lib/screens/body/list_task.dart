@@ -149,36 +149,41 @@ class ListTask extends StatelessWidget {
 
                       if (task.subTasks.isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        Column(
-                          children: task.subTasks.map((sub) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  NormalCheckbox(
-                                    value: sub.isCompleted,
-                                    onChanged: () async {
-                                      await provider.toggleSubTask(
-                                        task.id,
-                                        sub.id,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      sub.title,
-                                      style: TextStyle(
-                                        decoration: sub.isCompleted
-                                            ? TextDecoration.lineThrough
-                                            : null,
+                        Padding(
+                          padding: const EdgeInsets.only(left: 36),
+                          child: Column(
+                            children: task.subTasks.map((sub) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  children: [
+                                    NormalCheckbox(
+                                      value: sub.isCompleted,
+                                      onChanged: () async {
+                                        await provider.toggleSubTask(
+                                          task.id,
+                                          sub.id,
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        sub.title,
+                                        style: TextStyle(
+                                          decoration: sub.isCompleted
+                                              ? TextDecoration.lineThrough
+                                              : null,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
                         ),
                       ],
                     ],

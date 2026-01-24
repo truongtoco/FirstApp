@@ -80,6 +80,7 @@ class EditTaskProvider extends ChangeNotifier {
       createdAt: originalTask.createdAt,
       updatedAt: DateTime.now(),
       scheduledDate: scheduledDate,
+      remindAt: scheduledDate,
     );
   }
 
