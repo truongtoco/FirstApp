@@ -14,14 +14,12 @@ class NotificationService {
 
   // ---------- INIT ----------
   Future<void> init() async {
+    // Timezone
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-
-    const initSettings = InitializationSettings(android: androidSettings);
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidInit);
 
     await _plugin.initialize(initSettings);
 
@@ -30,7 +28,32 @@ class NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
 
+    // Android 13+
     await androidPlugin?.requestNotificationsPermission();
+
+    // 🔔 CHANNEL ALARM (1 LẦN)
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'alarm_channel',
+        'Alarm Notifications',
+        description: 'Alarm',
+        importance: Importance.max,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('alarm471496'),
+      ),
+    );
+
+    // 🔔 CHANNEL DAILY
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'daily_alarm_channel',
+        'Daily Alarm',
+        description: 'Daily alarm',
+        importance: Importance.max,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('alarm471496'),
+      ),
+    );
   }
 
   // ---------- THÔNG BÁO NGAY ----------
@@ -40,11 +63,12 @@ class NotificationService {
     required String body,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'default_channel',
-      'Default Notifications',
-      channelDescription: 'Instant notification',
+      'alarm_channel',
+      'Alarm Notifications',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('alarm471496'),
     );
 
     await _plugin.show(
@@ -77,10 +101,11 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'alarm_channel',
           'Alarm Notifications',
-          channelDescription: 'Alarm',
           importance: Importance.max,
           priority: Priority.high,
           playSound: true,
+          sound: RawResourceAndroidNotificationSound('alarm471496'),
+          fullScreenIntent: true,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -117,9 +142,10 @@ class NotificationService {
         android: AndroidNotificationDetails(
           'daily_alarm_channel',
           'Daily Alarm',
-          channelDescription: 'Daily alarm',
           importance: Importance.max,
           priority: Priority.high,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound('alarm471496'),
         ),
       ),
       matchDateTimeComponents: DateTimeComponents.time,

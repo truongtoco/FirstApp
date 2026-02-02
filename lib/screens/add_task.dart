@@ -21,7 +21,10 @@ class NewTaskScreen extends StatelessWidget {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.black),
+            icon: const Icon(
+              Icons.camera,
+              color: Color.fromARGB(255, 64, 63, 63),
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ],

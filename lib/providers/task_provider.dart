@@ -21,6 +21,14 @@ class TaskProvider extends ChangeNotifier {
   TaskProvider() {
     loadData();
   }
+  List<Task> tasksByDate(DateTime date) {
+    return tasks.where((task) {
+      if (task.remindAt == null) return false;
+
+      final d = task.remindAt!;
+      return d.year == date.year && d.month == date.month && d.day == date.day;
+    }).toList();
+  }
 
   Future<void> loadData() async {
     _isLoading = true;

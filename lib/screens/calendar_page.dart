@@ -1,64 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:horizontal_week_calendar/horizontal_week_calendar.dart';
-import 'package:intl/intl.dart';
 import '../providers/calendar_provider.dart';
-import '../screens/body/list_timeline.dart';
+import '../providers/task_provider.dart';
+import 'widgets/day_timeline.dart';
+import 'widgets/horizontal_day_picker.dart';
 
 class CalendarScreen extends StatelessWidget {
   const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CalendarProvider>();
+    final calendar = context.watch<CalendarProvider>();
+    final taskProvider = context.watch<TaskProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      calendar.setTasks(taskProvider.tasks);
+    });
 
     return Scaffold(
-      backgroundColor: Colors.white,
-
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text.rich(
-          TextSpan(
-            children: [
-              const TextSpan(
-                text: 'Calendar ',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              TextSpan(
-                text: DateFormat('d MMM').format(DateTime.now()),
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: false,
-      ),
-
+      appBar: AppBar(title: const Text('Calendar'), centerTitle: true),
       body: Column(
         children: [
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: HorizontalWeekCalendar(onDateChange: provider.selectDate),
+          HorizontalDayPicker(
+            selectedDate: calendar.selectedDate,
+            onChanged: calendar.changeDate,
           ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const Expanded(child: TaskTimeline()),
+          DayTimeline(
+            tasks: calendar.tasksOfSelectedDay,
+            selectedDate: calendar.selectedDate,
+          ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        onPressed: () {},
-        child: const Icon(Icons.add),
       ),
     );
   }

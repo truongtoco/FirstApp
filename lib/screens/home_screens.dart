@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/calendar_page.dart';
-import 'package:task_manager_app/screens/newtask.dart';
+// import 'package:task_manager_app/screens/newtask.dart';
 import 'package:task_manager_app/screens/newfolder.dart';
 import 'package:task_manager_app/services/notification_service.dart';
+import 'package:task_manager_app/screens/add_task.dart';
+import 'package:task_manager_app/screens/folder_screen.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -50,6 +52,69 @@ class HomeScreens extends StatelessWidget {
           ],
         ),
         centerTitle: false,
+      ),
+      endDrawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Color(0xFF393433)),
+              child: Text(
+                'Task Manager',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HomeScreens()),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.today),
+              title: const Text('Folder'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FolderScreen()),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.calendar_month),
+              title: const Text('Calendar'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CalendarScreen()),
+                );
+              },
+            ),
+
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Settings'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
 
       body: SingleChildScrollView(
@@ -113,19 +178,25 @@ class HomeScreens extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF393433),
         onPressed: () async {
-          // test notification
-          await NotificationService().setAlarm(
-            id: 999,
-            title: 'TEST ALARM',
-            body: 'Nếu cái này không kêu thì Android đang chặn',
-            time: DateTime.now().add(const Duration(minutes: 2)),
-          );
+          try {
+            await NotificationService().setAlarm(
+              id: 999,
+              title: 'TEST ALARM',
+              body: 'Nếu cái này không kêu thì Android đang chặn',
+              time: DateTime.now().add(const Duration(minutes: 2)),
+            );
+          } catch (e) {
+            debugPrint('Test alarm error: $e');
+          }
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NewTaskScreen()),
-          );
+          if (context.mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NewTaskScreen()),
+            );
+          }
         },
+
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
     );
