@@ -12,9 +12,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
+  bool _initialized = false;
+
   // ---------- INIT ----------
   Future<void> init() async {
-    // Timezone
+    if (_initialized) return;
+
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
 
@@ -23,15 +26,12 @@ class NotificationService {
 
     await _plugin.initialize(initSettings);
 
-    final androidPlugin = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
-    // Android 13+
     await androidPlugin?.requestNotificationsPermission();
 
-    // 🔔 CHANNEL ALARM (1 LẦN)
+    // 🔔 CHANNEL ALARM
     await androidPlugin?.createNotificationChannel(
       const AndroidNotificationChannel(
         'alarm_channel',
@@ -54,6 +54,8 @@ class NotificationService {
         sound: RawResourceAndroidNotificationSound('alarm471496'),
       ),
     );
+
+    _initialized = true;
   }
 
   // ---------- THÔNG BÁO NGAY ----------
@@ -62,21 +64,18 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'alarm_channel',
-      'Alarm Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('alarm471496'),
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'alarm_channel',
+        'Alarm Notifications',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+        sound: RawResourceAndroidNotificationSound('alarm471496'),
+      ),
     );
 
-    await _plugin.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails),
-    );
+    await _plugin.show(id, title, body, details);
   }
 
   // ---------- BÁO THỨC 1 LẦN ----------
@@ -86,17 +85,13 @@ class NotificationService {
     required String body,
     required DateTime time,
   }) async {
-    DateTime alarmTime = time;
-
-    if (alarmTime.isBefore(DateTime.now())) {
-      alarmTime = alarmTime.add(const Duration(days: 1));
-    }
+    if (time.isBefore(DateTime.now())) return;
 
     await _plugin.zonedSchedule(
       id,
       title,
       body,
-      tz.TZDateTime.from(alarmTime, tz.local),
+      tz.TZDateTime.from(time, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'alarm_channel',
@@ -154,11 +149,7 @@ class NotificationService {
   }
 
   // ---------- HUỶ ----------
-  Future<void> cancel(int id) async {
-    await _plugin.cancel(id);
-  }
+  Future<void> cancel(int id) async => _plugin.cancel(id);
 
-  Future<void> cancelAll() async {
-    await _plugin.cancelAll();
-  }
+  Future<void> cancelAll() async => _plugin.cancelAll();
 }

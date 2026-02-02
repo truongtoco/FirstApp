@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:task_manager_app/models/folder.dart';
 import 'package:task_manager_app/providers/task_provider.dart';
 import 'package:task_manager_app/screens/folder_task_screen.dart';
 import 'package:task_manager_app/screens/widgets/home_card.dart';
@@ -96,6 +97,54 @@ class ListFolder extends StatelessWidget {
           },
         );
       },
+    );
+  }
+
+  // Widget con để vẽ thẻ Folder
+  Widget _buildFolderCard(Folder folder, int count) {
+    return Container(
+      decoration: BoxDecoration(
+        color:
+            folder.backgroundColor?.withOpacity(0.2) ??
+            Colors.grey[100], // Màu nền nhạt
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Icon
+          Icon(
+            folder.icon ?? Icons.folder,
+            color: folder.backgroundColor ?? Colors.grey,
+            size: 28,
+          ),
+          const Spacer(),
+
+          // Số lượng Task (Đã tính toán ở trên)
+          Text(
+            "$count", // <--- SỐ LƯỢNG SẼ HIỆN Ở ĐÂY
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+
+          // Tên Folder
+          Text(
+            folder.title,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

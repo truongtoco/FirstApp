@@ -5,11 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/calendar_page.dart';
-// import 'package:task_manager_app/screens/newtask.dart';
 import 'package:task_manager_app/screens/newfolder.dart';
 import 'package:task_manager_app/services/notification_service.dart';
 import 'package:task_manager_app/screens/add_task.dart';
 import 'package:task_manager_app/screens/folder_screen.dart';
+import 'package:task_manager_app/screens/dashboard_screen.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -17,106 +17,58 @@ class HomeScreens extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CalendarScreen()),
-                );
-              },
-              child: const Text(
-                "Today ",
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.pie_chart_outline),
+            tooltip: "Xem thống kê",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardScreen(),
                 ),
+              );
+            },
+          ),
+          const SizedBox(width: 10),
+        ],
+        title: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CalendarScreen(),
               ),
-            ),
-
-            Opacity(
-              opacity: 0.3,
-              child: Text(
-                DateFormat('d MMM').format(DateTime.now()),
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
+            );
+          },
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.black, fontSize: 36),
+              children: [
+                const TextSpan(
+                  text: "Today ",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-              ),
+                WidgetSpan(
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: Text(
+                      DateFormat('d MMM').format(DateTime.now()),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                        fontSize: 36,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         centerTitle: false,
       ),
-      endDrawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF393433)),
-              child: Text(
-                'Task Manager',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomeScreens()),
-                );
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.today),
-              title: const Text('Folder'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FolderScreen()),
-                );
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.calendar_month),
-              title: const Text('Calendar'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CalendarScreen()),
-                );
-              },
-            ),
-
-            const Divider(),
-
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -131,7 +83,6 @@ class HomeScreens extends StatelessWidget {
                 onTap: () {
                   showDialog(
                     context: context,
-
                     barrierDismissible: true,
                     builder: (BuildContext context) {
                       return Dialog(
@@ -143,7 +94,6 @@ class HomeScreens extends StatelessWidget {
                     },
                   );
                 },
-
                 child: Ink(
                   width: double.infinity,
                   child: DottedBorder(
@@ -196,7 +146,6 @@ class HomeScreens extends StatelessWidget {
             );
           }
         },
-
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
     );

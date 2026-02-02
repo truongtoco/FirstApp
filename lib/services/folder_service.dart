@@ -4,38 +4,28 @@ import 'package:task_manager_app/models/folder.dart';
 import 'package:uuid/uuid.dart';
 
 class FolderService {
-  // --- SINGLETON PATTERN ---
   static final FolderService _instance = FolderService._internal();
   factory FolderService() => _instance;
   FolderService._internal();
 
   late Box<Folder> _folderBox;
-
-  // Mở Box và tạo data mẫu
   Future<void> init() async {
     _folderBox = await Hive.openBox<Folder>('folders');
-
-    // Nếu box rỗng , tạo các folder mặc định
     if (_folderBox.isEmpty) {
       await _createDefaultFolders();
     }
   }
 
-  // Lấy toàn bộ danh sách Folder
   List<Folder> getAllFolders() {
     return _folderBox.values.toList().cast<Folder>();
   }
 
-  // Lấy Folder theo ID
   Folder? getFolderById(String id) {
     return _folderBox.get(id);
   }
 
-  // --- TẠO DATA MẪU ---
   Future<void> _createDefaultFolders() async {
     final uuid = const Uuid();
-
-    // Tạo danh sách folder mặc định với IconCode và ColorValue
     final defaultFolders = [
       Folder(
         id: uuid.v4(),
@@ -71,7 +61,6 @@ class FolderService {
       ),
     ];
 
-    // Lưu từng folder vào Box
     for (var folder in defaultFolders) {
       await _folderBox.put(folder.id, folder);
     }

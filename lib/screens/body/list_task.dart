@@ -14,7 +14,6 @@ class ListTask extends StatelessWidget {
     return Consumer<TaskProvider>(
       builder: (context, provider, _) {
         final tasks = provider.tasks;
-
         if (provider.isLoading) {
           return const Padding(
             padding: EdgeInsets.all(24),
