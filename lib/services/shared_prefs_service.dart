@@ -12,7 +12,7 @@ class SharedPrefsService {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // Getter & Setter cho Onboarding
+  // Getter & Setter
   bool get isFirstLaunch => _prefs.getBool('isFirstLaunch') ?? true;
 
   Future<void> setFirstLaunch(bool value) async {

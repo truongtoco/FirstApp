@@ -5,6 +5,7 @@ import 'package:task_manager_app/screens/body/list_folder.dart';
 import 'package:task_manager_app/screens/body/list_task.dart';
 import 'package:task_manager_app/screens/widgets/add_task.dart';
 import 'package:task_manager_app/screens/widgets/new_folder_screen.dart';
+import 'dashboard_screen.dart';
 
 class HomeScreens extends StatelessWidget {
   const HomeScreens({super.key});
@@ -13,6 +14,19 @@ class HomeScreens extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.pie_chart_outline),
+            tooltip: "Xem thống kê",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DashboardScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 10),
+        ],
         title: RichText(
           text: TextSpan(
             style: const TextStyle(color: Colors.black, fontSize: 36),
@@ -42,8 +56,14 @@ class HomeScreens extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 20),
+
+            // 1. Danh sách Folder
             const ListFolder(),
-            // Nút Add New Folder
+
+            const SizedBox(height: 20),
+
+            // 2. Nút Add New Folder
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 22.0),
               child: InkWell(
@@ -89,7 +109,9 @@ class HomeScreens extends StatelessWidget {
               ),
             ),
 
-            // Danh sách Task
+            const SizedBox(height: 20),
+
+            // 3. Danh sách Task
             const ListTask()
           ],
         ),

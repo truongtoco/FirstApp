@@ -69,4 +69,58 @@ class TaskViewModel extends ChangeNotifier {
     _folders = _folderService.getAllFolders();
     notifyListeners();
   }
+  // Hàm xóa task
+  Future<void> deleteTask(String taskId) async{
+    // Gọi service xóa data trong Database
+    await _taskService.deleteTask(taskId);
+    // Xóa khỏi list trên UI
+    _tasks.removeWhere((t) => t.id == taskId);
+    notifyListeners();
+  }
+  // 1. Tổng số Task
+  int get totalTasks => _tasks.length;
+
+  // 2. Số Task đã hoàn thành
+  int get completedTasksCount => _tasks.where((t) => t.isCompleted).length;
+
+  // 3. Số Task đang chờ
+  int get pendingTasksCount => _tasks.where((t) => !t.isCompleted).length;
+
+  // 4. Tỷ lệ hoàn thành (0.0 -> 1.0)
+  double get completionPercentage {
+    if (_tasks.isEmpty) return 0.0;
+    return completedTasksCount / totalTasks;
+  }
+
+  // 5. Thống kê Task theo Folder (Để vẽ biểu đồ tròn)
+  // Trả về Map: {Folder: Số lượng task}
+  Map<Folder, int> get tasksPerFolder {
+    Map<Folder, int> stats = {};
+
+    // Lấy danh sách các folder đang có
+    for (var folder in _folders) {
+      // Đếm số task thuộc folder này
+      int count = _tasks.where((t) => t.folder?.id == folder.id).length;
+      if (count > 0) {
+        stats[folder] = count;
+      }
+    }
+
+    // Đếm số task không có folder (Others)
+    int noFolderCount = _tasks.where((t) => t.folder == null).length;
+    if (noFolderCount > 0) {
+      // Tạo một Folder ảo để hiển thị
+      final other = Folder(
+          id: 'other',
+          title: 'Others',
+          iconCode: 0, // Icon ảo
+          colorValue: 0xFF9E9E9E, // Màu xám
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now()
+      );
+      stats[other] = noFolderCount;
+    }
+
+    return stats;
+  }
 }
